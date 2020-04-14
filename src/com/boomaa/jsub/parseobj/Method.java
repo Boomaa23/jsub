@@ -1,20 +1,22 @@
 package com.boomaa.jsub.parseobj;
 
+import com.boomaa.jsub.Scheduleable;
+
 import java.util.List;
 
-public class Method<T, K> {
-    private final String methodName;
+@Scheduleable
+public class Method<T, K> extends Block {
     private final String action;
-    private final Class superclass;
+    private final Class enclosingClass;
     private final List<java.lang.Class<?>> parameterTypes;
 
-    public Method(String methodName, String action, Class superclass, List<java.lang.Class<?>> parameterTypes) {
-        this.methodName = methodName;
+    public Method(String name, String action, Class enclosingClass, List<java.lang.Class<?>> parameterTypes) {
+        super(name);
         this.action = action;
-        this.superclass = superclass;
+        this.enclosingClass = enclosingClass;
         this.parameterTypes = parameterTypes;
-        superclass.checkMethodDuplicates(this);
-        superclass.registerMethod(this);
+        enclosingClass.checkMethodDuplicates(this);
+        enclosingClass.registerMethod(this);
     }
 
     public K run(List<T> parameters) {
@@ -25,7 +27,7 @@ public class Method<T, K> {
 
     public String getHeader(HeaderPortion portion) {
         if (portion == HeaderPortion.USER_DECLARED) {
-            return "'" + methodName + "(" + csvParamTypes() + ")' already implemented in '" + superclass.getFullName() + "'";
+            return "'" + getName() + "(" + csvParamTypes() + ")' already implemented in '" + enclosingClass.getFullName() + "'";
         } else {
             return null;
             //TODO implement final, static, access modifiers, etc
@@ -47,11 +49,44 @@ public class Method<T, K> {
     @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         Method<T, K> compare = (Method<T, K>) obj;
-        return compare.methodName.equals(this.methodName)
+        return compare.getName().equals(this.getName())
                 && compare.parameterTypes.containsAll(this.parameterTypes);
     }
 
     public enum HeaderPortion {
         USER_DECLARED, RESERVED
+    }
+
+    public static class Builder extends Block {
+        private String action;
+        private Class enclosingClass;
+        private List<java.lang.Class<?>> parameterTypes;
+
+        public Builder(String name) {
+            super(name);
+        }
+
+        public Builder setAction(String action) {
+            this.action = action;
+            return this;
+        }
+
+        public Builder setEnclosingClass(Class enclosingClass) {
+            this.enclosingClass = enclosingClass;
+            return this;
+        }
+
+        public Builder setParameterTypes(List<java.lang.Class<?>> parameterTypes) {
+            this.parameterTypes = parameterTypes;
+            return this;
+        }
+
+        public <H, B> Method<H, B> build() {
+            if (action != null && enclosingClass != null && parameterTypes != null) {
+                return new Method<>(getName(), action, enclosingClass, parameterTypes);
+            } else {
+                throw new IllegalStateException("Cannot build incomplete method");
+            }
+        }
     }
 }

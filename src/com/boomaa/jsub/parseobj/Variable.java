@@ -1,21 +1,23 @@
 package com.boomaa.jsub.parseobj;
 
-public class Variable<T> {
-    private final String name;
+import com.boomaa.jsub.Scheduleable;
+
+@Scheduleable
+public class Variable<T> extends Block {
     private T value;
 
     public Variable(String name, T value) {
-        this.name = name;
+        super(name);
         this.value = value;
     }
 
     public Variable(String name) {
-        this.name = name;
+        super(name);
     }
 
     public T getValue() {
         if (value == null) {
-            throw new NullPointerException(name + " has not yet been initialized");
+            throw new NullPointerException(getName() + " has not yet been initialized");
         }
         return value;
     }

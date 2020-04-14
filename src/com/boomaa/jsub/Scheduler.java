@@ -6,7 +6,11 @@ public class Scheduler {
     public static List<Event<?>> events;
 
     public static <T> void addEvent(T event) {
-        events.add(new Event<T>(event));
+        if (event.getClass().isAnnotationPresent(Scheduleable.class)) {
+            events.add(new Event<>(event));
+        } else {
+            throw new IllegalArgumentException("Cannot create event from non-parseable type");
+        }
     }
 
     public static void execute() {
