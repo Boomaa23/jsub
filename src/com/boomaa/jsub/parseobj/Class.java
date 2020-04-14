@@ -1,7 +1,6 @@
 package com.boomaa.jsub.parseobj;
 
-import com.boomaa.jsub.Scheduleable;
-import com.boomaa.jsub.Scheduler;
+import com.boomaa.jsub.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,18 +9,14 @@ import java.util.List;
 public class Class extends Block {
     private final List<Method<?, ?>> methodList;
     private final List<Variable<?>> variableList;
-    private Class subclass;
+    private final List<Class> subclassList;
 
     public Class(String name) {
         super(name);
         this.methodList = new ArrayList<>();
         this.variableList = new ArrayList<>();
-        this.subclass = null;
-    }
-
-    public String getFullName() {
-        return getName();
-        //TODO implement packages & naming trees
+        //TODO move to subclass list OR make classhierarchy work
+        this.subclassList = new ArrayList<>();
     }
 
     public List<Method<?, ?>> getMethods() {
@@ -47,12 +42,10 @@ public class Class extends Block {
         methodList.add(method);
     }
 
-    public Class createSubclass(Class subclass) {
-        if (this.subclass != null) {
+    public Class assignSubclass(Class subclass) {
+        if (this.subclass == null) {
             this.subclass = subclass;
             return subclass;
-        } else {
-            throw new IllegalArgumentException("Class " + getFullName() + " cannot have multiple subclasses");
         }
     }
 
@@ -62,6 +55,22 @@ public class Class extends Block {
 
     @Override
     public boolean equals(Object obj) {
-        return ((Class) obj).getName().equals(this.getName());
+        return ((Class) obj).getSimpleName().equals(this.getSimpleName());
+    }
+
+    @Override
+    public String toString() {
+        Class cl = Parser.getClassHierarchy()
+                .getRelativeClass(RelativeSelector.SUB, this);
+        String n = null;
+        if (cl != null) {
+            n = cl.getSimpleName();
+        }
+        return "Class{" +
+                "name=" + getSimpleName() +
+                ", methodList=" + methodList +
+                ", variableList=" + variableList +
+                ", subclassList=" + n +
+                '}';
     }
 }

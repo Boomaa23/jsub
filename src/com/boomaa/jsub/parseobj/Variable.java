@@ -17,7 +17,7 @@ public class Variable<T> extends Block {
 
     public T getValue() {
         if (value == null) {
-            throw new NullPointerException(getName() + " has not yet been initialized");
+            throw new NullPointerException(getSimpleName() + " has not yet been initialized");
         }
         return value;
     }

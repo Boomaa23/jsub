@@ -14,15 +14,22 @@ public class Parser {
     public static void main(String[] args) throws IOException {
         FileInputStream fis = new FileInputStream(args[0]);
         String input = new String(fis.readAllBytes());
-        String[] lineInput = input.split("\n");
+        String[] lineInput = input.replaceAll("\r", "").split("\n");
         for (int i = 0;i < lineInput.length;i++) {
             String[] spcLine = lineInput[i].split(" ");
+            Block current = null;
             for (int j = 0;j < spcLine.length;j++) {
                 String cline = spcLine[j].trim();
                 if (cline.equals("{")) {
+                    current = newBlock(spcLine[j - 2], spcLine[j - 1]);
+                }
+                if (cline.equals("}")) {
+                    //TODO figure out how to end blocks
+                    current.setClosed();
                 }
             }
         }
+        System.out.println(classHierarchy);
     }
 
     private static Block newBlock(String keyword, String name) {
@@ -35,10 +42,14 @@ public class Parser {
                 block = new Method.Builder(name);
                 break;
             case "variable":
-                block = new Variable<>();
+                block = new Variable<>(name);
         }
         assignClassHierarchy(block);
         return block;
+    }
+
+    private static void endBlock(Block toEnd) {
+
     }
 
     private static void assignClassHierarchy(Block query) {
@@ -54,11 +65,15 @@ public class Parser {
                 throw new IllegalStateException("Master class has not been established as required before adding methods");
             }
             Method.Builder mb = (Method.Builder) query;
-            mb = mb.setAction().setEnclosingClass().setParameterTypes()
+//            mb = mb.setAction().setEnclosingClass().setParameterTypes()
                     //TODO sort out the builder stuff with method/variable types
             classHierarchy.current().registerMethod(mb.build());
         } else if (query instanceof Variable) {
 
         }
+    }
+
+    public static ClassHierarchy getClassHierarchy() {
+        return classHierarchy;
     }
 }

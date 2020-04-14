@@ -1,0 +1,10 @@
+class test {
+    class inner {
+        class third {
+
+        }
+        class fourth {
+
+        }
+    }
+}

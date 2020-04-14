@@ -27,7 +27,7 @@ public class Method<T, K> extends Block {
 
     public String getHeader(HeaderPortion portion) {
         if (portion == HeaderPortion.USER_DECLARED) {
-            return "'" + getName() + "(" + csvParamTypes() + ")' already implemented in '" + enclosingClass.getFullName() + "'";
+            return "'" + getSimpleName() + "(" + csvParamTypes() + ")' already implemented in '" + enclosingClass.getName(NameVerbosity.FULL) + "'";
         } else {
             return null;
             //TODO implement final, static, access modifiers, etc
@@ -49,7 +49,7 @@ public class Method<T, K> extends Block {
     @SuppressWarnings("unchecked")
     public boolean equals(Object obj) {
         Method<T, K> compare = (Method<T, K>) obj;
-        return compare.getName().equals(this.getName())
+        return compare.getSimpleName().equals(this.getSimpleName())
                 && compare.parameterTypes.containsAll(this.parameterTypes);
     }
 
@@ -83,7 +83,7 @@ public class Method<T, K> extends Block {
 
         public <H, B> Method<H, B> build() {
             if (action != null && enclosingClass != null && parameterTypes != null) {
-                return new Method<>(getName(), action, enclosingClass, parameterTypes);
+                return new Method<>(getSimpleName(), action, enclosingClass, parameterTypes);
             } else {
                 throw new IllegalStateException("Cannot build incomplete method");
             }
