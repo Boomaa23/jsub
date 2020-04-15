@@ -2,21 +2,29 @@ package com.boomaa.jsub.parseobj;
 
 import com.boomaa.jsub.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Scheduleable
 public class Class extends Block {
+    private static final Map<String, Class> classesList;
     private final List<Method<?, ?>> methodList;
     private final List<Variable<?>> variableList;
-    private final List<Class> subclassList;
+    private final List<String> subclassList;
+    private final List<String> nestedClassList;
+    private String enclosingClass;
+    private String superclass;
+
+    static {
+        classesList = new LinkedHashMap<>();
+    }
 
     public Class(String name) {
         super(name);
         this.methodList = new ArrayList<>();
         this.variableList = new ArrayList<>();
-        //TODO move to subclass list OR make classhierarchy work
         this.subclassList = new ArrayList<>();
+        this.nestedClassList = new ArrayList<>();
+        classesList.put(super.uuid, this);
     }
 
     public List<Method<?, ?>> getMethods() {
@@ -27,12 +35,64 @@ public class Class extends Block {
         return variableList;
     }
 
-    //TODO see about deleting this subclass thing and using ClassHierarchy instead
-    public Class getSubclass() {
-        return subclass;
+    public Class getSuperclass() {
+        return classesList.get(superclass);
     }
 
-    public void checkMethodDuplicates(Method<?, ?> method) {
+    public Class getEnclosingClass() {
+        return classesList.get(enclosingClass);
+    }
+
+    public List<Class> getSubclasses() {
+        return getMultiRelation(RelationSelector.SUB);
+    }
+
+    public List<Class> getNestedClasses() {
+        return getMultiRelation(RelationSelector.NESTED);
+    }
+
+    private List<Class> getMultiRelation(RelationSelector selector) {
+        List<String> inputList = null;
+        if (selector == RelationSelector.SUB) {
+            inputList = subclassList;
+        } else if (selector == RelationSelector.NESTED) {
+            inputList = nestedClassList;
+        }
+
+        List<Class> output = new ArrayList<>();
+        assert inputList != null;
+        for (String uuid : inputList) {
+            output.add(classesList.get(uuid));
+        }
+        return output;
+    }
+
+    public static Class master() {
+        return classesList.entrySet().iterator().next().getValue();
+    }
+
+    public void addRelation(RelationSelector selector, Class toAdd) {
+        addRelation(selector, this, toAdd);
+    }
+
+    public static void addRelation(RelationSelector selector, Class c1, Class c2) {
+        switch (selector) {
+            case SUPER:
+                c2.subclassList.add(c1.uuid);
+                c1.superclass = c2.uuid;
+                break;
+            case SUB:
+                c1.subclassList.add(c2.uuid);
+                c2.superclass = c1.uuid;
+                break;
+            case NESTED:
+                c1.nestedClassList.add(c2.uuid);
+                c2.enclosingClass = c1.uuid;
+                break;
+        }
+    }
+
+    public <T, K> void checkMethodDuplicates(Method<T, K> method) {
         if (!methodList.contains(method)) {
             throw new IllegalArgumentException(method.getHeader(Method.HeaderPortion.USER_DECLARED) + "is already defined");
         }
@@ -42,11 +102,8 @@ public class Class extends Block {
         methodList.add(method);
     }
 
-    public Class assignSubclass(Class subclass) {
-        if (this.subclass == null) {
-            this.subclass = subclass;
-            return subclass;
-        }
+    public static void writeHierarchy(String outputFilename) {
+        //TODO implement hierarchy (classes, methods, vars) write to file
     }
 
     public void schedule() {
@@ -60,17 +117,15 @@ public class Class extends Block {
 
     @Override
     public String toString() {
-        Class cl = Parser.getClassHierarchy()
-                .getRelativeClass(RelativeSelector.SUB, this);
-        String n = null;
-        if (cl != null) {
-            n = cl.getSimpleName();
-        }
         return "Class{" +
-                "name=" + getSimpleName() +
+                "name=" + name +
+                ", uuid=" + uuid +
                 ", methodList=" + methodList +
                 ", variableList=" + variableList +
-                ", subclassList=" + n +
+                ", subclassList=" + subclassList +
+                ", nestedClassList=" + nestedClassList +
+                ", enclosedClassList=" + enclosingClass +
+                ", superclass='" + superclass +
                 '}';
     }
 }

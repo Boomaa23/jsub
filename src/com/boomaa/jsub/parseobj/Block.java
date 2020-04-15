@@ -1,23 +1,14 @@
 package com.boomaa.jsub.parseobj;
 
+import java.util.UUID;
+
 public abstract class Block {
-    private final String name;
-    private boolean closed = false;
+    protected final String name;
+    protected final String uuid;
 
     public Block(String name) {
         this.name = name;
-    }
-
-    public boolean isClosed() {
-        return closed;
-    }
-
-    public void setClosed() {
-        setClosed(true);
-    }
-
-    public void setClosed(boolean closed) {
-        this.closed = closed;
+        this.uuid = UUID.randomUUID().toString();
     }
 
     public String getSimpleName() {

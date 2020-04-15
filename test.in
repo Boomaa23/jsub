@@ -5,6 +5,10 @@ class test {
         }
         class fourth {
 
+        method int hi(int j) {
+
+        }
+
         }
     }
 }
